@@ -31,7 +31,7 @@
 
 const Nest = require('node-nest');
 const nest = new Nest({
-  workers: 200,
+  //workers: 200,
   mongo: {
     db: 'nest_dakkadakka',
     host: '127.0.0.1',
@@ -122,20 +122,47 @@ nest.addRoute({
 
     let table = $('#gallery');
 
+    // Title
     let h3 = table.find('h3'); // title
 
+    // Top container
     let topTable = h3.parent().parent().parent();
 
-    let author = topTable.children().eq(0).children().eq(1).find('a').text();
-    let authorUrl = topTable.children().eq(0).children().eq(1).find('a').prop('href');
+    // Author
+    let authorContainer = topTable.children().eq(0).children().eq(1).find('a');
+    let author = '';
+    let authorUrl = '';
+    if (authorContainer.length) {
+      author = authorContainer.text();
+      authorUrl = authorContainer.prop('href');
+    }
 
-    let paintjobRating = topTable.children().eq(1).children().eq(0).find('b').text();
-    let views = topTable.children().eq(1).children().eq(1).find('b').text();
+    // Rating, Views
+    let ratingViewsContainer = topTable.children().eq(1).children().eq(0).find('b');
+    let paintjobRating = '';
+    let views = '';
+    if (ratingViewsContainer.length) {
+      paintjobRating = ratingViewsContainer.text();
+      views = ratingViewsContainer.text();
+    }
 
-    let coolnessRating = topTable.children().eq(2).children().eq(0).find('b').text();
-    let votes = topTable.children().eq(2).children().eq(1).find('b').text();
+    // Coolness, Votes
+    let coolnessVotesContainer = topTable.children().eq(2).children().eq(0).find('b');
+    let coolnessRating = '';
+    let votes = '';
+    if (coolnessVotesContainer.length) {
+      coolnessRating = coolnessVotesContainer.text();
+      votes = coolnessVotesContainer.text();
+    }
 
-    let imageDetails = $('form[name=formx]').parent().parent().parent().parent().parent().html();
+    // Tags
+    let tags = [];
+    table.children().eq(4).find('.forumline').children().eq(0).children().eq(0).children().each(function(index, element) {
+      tags.push({
+        name: $(this).text(),
+        href: $(this).prop('href'),
+      })
+    });
 
     let imageDetailsContainer = $('form[name=formx]').parent().parent().parent().parent().children().eq(2).find('table');
     let resolution = imageDetailsContainer.children().eq(1).children().eq(1).text();
@@ -162,6 +189,7 @@ nest.addRoute({
       uploaded,
       galleryUrl,
       galleryName,
+      tags,
     };
 
     data.items.push(mini);
@@ -172,14 +200,18 @@ nest.addRoute({
 
 
 //Create gallery jobs from the image 0 to the image 770370
-var firstStart = 0;
-var lastStart = 770370;
-var step = 30;
+let firstStart = 0;
+let lastStart = 770370;
+let step = 30;
+
+lastStart = 450060;
+firstStart = 450000;
+
 
 for (let i = firstStart; i <= lastStart; i += step) {
-  nest.queue('dakka-dakka-gallery-page', { query: { start: i } });
+  nest.queue('dakka-dakka-gallery-page', { priority: 90, query: { start: i } });
 }
 
-//nest.queue('dakka-dakka-gallery-page', { query: { start: 0 } });
+//nest.queue('dakka-dakka-gallery-page', { priority: 90, query: { start: 440000 } });
 
 nest.start().then(() => console.log('Engine started!'));
